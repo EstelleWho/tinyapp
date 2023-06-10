@@ -17,6 +17,7 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// path sends back urlDatabase
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -25,6 +26,7 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+// path using html tags
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -35,7 +37,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// add GET route to render template/show form to user
+// new Url page/ add GET route to render template/show form to user
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
@@ -46,11 +48,17 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
 app.post("/urls", (req, res) => {
-  console.log('this is req.body', req.body); // Log the POST request body to the console
-  const shortUrl = generateRandomString();
-  const longUrl = req.body.longUrl
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  // console.log('this is req.body', req.body); // Log the POST request body to the console
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = longURL;
+  res.redirect(`/urls/${shortURL}`);  // show the long and short urls
 });
 
 // generate random short URL ID
@@ -60,8 +68,8 @@ function generateRandomString() {
   let result = '';
 
   for (var i = 0; i < length; i++) {
-    const randomUrl = Math.floor(Math.random() * characters.length);
-    result += characters.charAt(randomUrl);
+    const randomURL = Math.floor(Math.random() * characters.length);
+    result += characters.charAt(randomURL);
   }
   return result;
 }
