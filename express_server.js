@@ -53,6 +53,13 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+// delete button
+app.post("/urls/:id/delete", (req,res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
+
+
 app.post("/urls", (req, res) => {
   // console.log('this is req.body', req.body); // Log the POST request body to the console
   const shortURL = generateRandomString();
