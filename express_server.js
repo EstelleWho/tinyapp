@@ -2,9 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 
 app.use(morgan('dev'));
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -27,6 +29,11 @@ app.post("/login", (req,res) => {
   res.redirect("/urls");
 });
 
+app.post("/logout", (req, res) => {
+  res.clearCookie('username');
+  res.redirect("/urls");
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -38,7 +45,10 @@ app.get("/hello", (req, res) => {
 
 // to keep templates and urls 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  let templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase 
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -52,7 +62,8 @@ app.get("/u/:id", (req, res) => {
 
 // new Url page/ add GET route to render template/show form to user
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = { username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
 });
 
 // second route and template
@@ -68,10 +79,12 @@ app.post("/urls/:id/delete", (req,res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const shortURL = req.params.id;
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
+  let templateVars = { 
+    username: req.cookies["username"],
+    shortURL: req.params.id, 
+    longURL: urlDatabase[req.params.shortURL] 
+  };
+  res.redirect("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
