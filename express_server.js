@@ -62,6 +62,12 @@ app.post("/urls/:id/delete", (req,res) => {
   res.redirect("/urls");
 });
 
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = longURL;
+  res.redirect(`/urls/${shortURL}`);
+});
 
 app.post("/urls", (req, res) => {
   // console.log('this is req.body', req.body); // Log the POST request body to the console
