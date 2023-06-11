@@ -7,13 +7,59 @@ const cookieParser = require('cookie-parser');
 app.use(morgan('dev'));
 app.set("view engine", "ejs");
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-app.use(express.urlencoded({ extended: true }));
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+
+const addUser = (email, password) => {
+  const id = generateRandomString();
+  users[id] = {
+    id,
+    email,
+    password
+  };
+  return id;
+};
+
+const checkRegistration = (email, password) => {
+  if (email && password) {
+    return true;
+  }
+  return false
+};
+
+const findUser = email => {
+  return Object.values(users).find(user => user.email === email);
+}
+
+app.post("/register", (req, res) => {
+  const { email, password } = req.body;
+  if (!findUser(email, password)) {
+    res.status(400).send('Please enter e-mail or password');
+  } else if (checkEmail(email)) {
+    res.status(400).send('This email is already registered!')
+  } else {
+    const user_id = addUser(email, password);
+    res.cookie('user_id', user_id);
+    res.redirect("/urls");
+  }
+});
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -24,14 +70,24 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/login", (req, res) => {
+  let templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_login", templateVars);
+});
+
 app.post("/login", (req,res) => {
   res.cookie('username', req.body.username);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect("/urls");
+});
+
+app.get("/register", (req,res) => {
+  let templateVars = { user: users[req.cookies["username"]] };
+  res.render("urls_register", templateVars);
 });
 
 app.listen(PORT, () => {
@@ -46,7 +102,7 @@ app.get("/hello", (req, res) => {
 // to keep templates and urls 
 app.get("/urls", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies["user_id"]],
     urls: urlDatabase 
   };
   res.render("urls_index", templateVars);
@@ -62,14 +118,17 @@ app.get("/u/:id", (req, res) => {
 
 // new Url page/ add GET route to render template/show form to user
 app.get("/urls/new", (req, res) => {
-  let templateVars = { username: req.cookies["username"] };
+  let templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
 // second route and template
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id]};
-  res.render("urls_show", templateVars);
+  let templateVars = { 
+    user: users[req.cookies["user_id"]],
+    shortURL: req.params.id, 
+    longURL: urlDatabase[req.params.id]
+  }
 });
 
 // delete button
