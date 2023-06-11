@@ -37,6 +37,14 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id;
+  console.log(urlDatabase);
+  console.log('shortURL', shortURL);
+  let longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
+});
+
 // new Url page/ add GET route to render template/show form to user
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -48,14 +56,9 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
-
 // delete button
 app.post("/urls/:id/delete", (req,res) => {
-  delete urlDatabase[req.params.shortURL];
+  delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
 
