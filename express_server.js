@@ -107,7 +107,7 @@ app.get("/urls/:id", (req, res) => {
   let templateVars = { 
     user: users[req.cookies["user_id"]],
     shortURL: req.params.id, 
-    longURL: urlDatabase[req.params.id], longURL
+    longURL: urlDatabase[req.params.id].longURL
   };
   if (req.cookies["user_id"] === urlDatabase[templateVars.shortURL].userID) {
     res.render("urls_show", templateVars);
