@@ -104,6 +104,9 @@ app.post("/urls", (req, res) => {
 
 // second route and template
 app.get("/urls/:id", (req, res) => {
+  if (!urlDatabase[req.params.shortURL]) {
+    res.status(400).send("This Short URL does not exist!")
+  }
   let templateVars = { 
     user: users[req.cookies["user_id"]],
     shortURL: req.params.id, 
