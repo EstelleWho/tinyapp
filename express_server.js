@@ -80,11 +80,7 @@ app.get("/urls", (req, res) => {
     user: users[req.cookies["user_id"]],
     urls: urlsForUser(req.cookies["user_id"])
   };
-  if (templateVars.user) {
-    res.render("urls_index", templateVars);
-  } else {
-    res.status(400).send("Please login or register to have access");
-  }
+  res.render("urls_index", templateVars);
 });
 
 // new Url page/ add GET route to render template/show form to user
@@ -113,9 +109,6 @@ app.get("/urls/:id", (req, res) => {
     shortURL: req.params.id, 
     longURL: urlDatabase[req.params.id], longURL
   };
-  if (!templateVars.user) {
-    res.status(400).send("Please login or register to have access");
-  }
   if (req.cookies["user_id"] === urlDatabase[templateVars.shortURL].userID) {
     res.render("urls_show", templateVars);
   } else {
