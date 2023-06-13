@@ -190,7 +190,7 @@ app.post("/register", (req, res) => {
     res.status(400).send('This email is already registered!')
   } else {
     const user_id = addUser(email, password);
-    res.session('user_id', user_id);
+    req.session.user_id = user_id;
     res.redirect("/urls");
   }
 });
