@@ -8,7 +8,7 @@ const getUserByEmail = require('./helpers');
 
 app.use(morgan('dev'));
 app.set("view engine", "ejs");
-//app.use(cookieParser()); //not anymore
+//app.use(cookieParser()); // not anymore
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cookieSession({
