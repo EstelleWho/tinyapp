@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const morgan = require('morgan');
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
+const getUserByEmail = require('./helpers');
 
 app.use(morgan('dev'));
 app.set("view engine", "ejs");
@@ -53,9 +54,6 @@ const addUser = (email, password) => {
 //   return false
 // };
 
-const findUser = email => {
-  return Object.values(users).find(user => user.email === email);
-};
 
 
 const checkPassword= (user, password) => {
@@ -66,7 +64,7 @@ const checkPassword= (user, password) => {
   }
 };
 
-// const findUser = email => {
+// const getUserByEmail = email => {
 //   return Object.values(users).find(user => user.email === email);
 // }
 
@@ -161,7 +159,7 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/login", (req,res) => {
   const { email, password } = req.body;
-  const user = findUser(email);
+  const user = getUserByEmail(email);
   if (!user) {
     res.status(403).send("Email cannot be found");
   } else if (!bcrypt.compareSync(password, user.password)) {
@@ -188,7 +186,7 @@ app.post("/register", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     res.status(400).send('Please enter e-mail or password');
-  } else if (findUser(email)) {
+  } else if (getUserByEmail(email)) {
     res.status(400).send('This email is already registered!')
   } else {
     const user_id = addUser(email, password);
