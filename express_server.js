@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 
 app.use(morgan('dev'));
 app.set("view engine", "ejs");
@@ -28,11 +29,12 @@ const users = {
 };
 
 const addUser = (email, password) => {
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const id = generateRandomString();
   users[id] = {
     id,
     email,
-    password
+    password: hashedPassword
   };
   return id;
 };
@@ -47,6 +49,7 @@ const addUser = (email, password) => {
 const findUser = email => {
   return Object.values(users).find(user => user.email === email);
 };
+
 
 const checkPassword= (user, password) => {
   if (user.password === password) {
@@ -104,9 +107,6 @@ app.post("/urls", (req, res) => {
 
 // second route and template
 app.get("/urls/:id", (req, res) => {
-  if (!urlDatabase[req.params.shortURL]) {
-    res.status(400).send("This Short URL does not exist!")
-  }
   let templateVars = { 
     user: users[req.cookies["user_id"]],
     shortURL: req.params.id, 
@@ -116,6 +116,9 @@ app.get("/urls/:id", (req, res) => {
     res.render("urls_show", templateVars);
   } else {
     res.status(400).send("This TinyURL isn't yours!");
+  }
+  if (!urlDatabase[req.params.shortURL]) {
+    res.status(400).send("This Short URL does not exist!")
   }
 });
 
@@ -154,7 +157,7 @@ app.post("/login", (req,res) => {
   const user = findUser(email);
   if (!user) {
     res.status(403).send("Email cannot be found");
-  } else if (!checkPassword(user, password))  {
+  } else if (!bcrypt.compareSync(password, user.password)) {
     res.status(403).send("Wrong password");
   } else {
     res.cookie('user_id', user.id);
