@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
 const getUserByEmail = require('./helpers');
+const { get } = require("request");
 
 app.use(morgan('dev'));
 app.set("view engine", "ejs");
@@ -16,13 +17,10 @@ app.use(
     keys: ['e1d50c4f-538a-4682-89f4-c002f10a59c8', '2d310699-67d3-4b26-a3a4-1dbf2b67be5c'],
   })
 );
-
-
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
   "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID" }
 };
-
 const users = { 
   "userRandomID": {
     id: "RandomUser1", 
@@ -103,15 +101,23 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   // console.log('this is req.body', req.body); // Log the POST request body to the console
+  const user = currentUser(req.session.userId, urlDatabase);
+  if (!user) {
+    res.redirect('/login');
+  } else {
   const shortURL = generateRandomString();
   const userID = req.session['user_id'];
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = { longURL, userID };
   res.redirect(`/urls/${shortURL}`);  // show the long and short urls
+  }
 });
 
 // second route and template
 app.get("/urls/:id", (req, res) => {
+  if (!urlDatabase[req.params.id]) {
+    res.status(400).send("This Short URL does not exist!")
+  }
   let templateVars = { 
     user: users[req.session["user_id"]],
     shortURL: req.params.id, 
@@ -121,9 +127,6 @@ app.get("/urls/:id", (req, res) => {
     res.render("urls_show", templateVars);
   } else {
     res.status(400).send("This TinyURL isn't yours!");
-  }
-  if (!urlDatabase[req.params.shortURL]) {
-    res.status(400).send("This Short URL does not exist!")
   }
 });
 
@@ -186,7 +189,7 @@ app.post("/register", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     res.status(400).send('Please enter e-mail or password');
-  } else if (getUserByEmail(email)) {
+  } else if (getUserByEmail(email, users)) {
     res.status(400).send('This email is already registered!')
   } else {
     const user_id = addUser(email, password);
